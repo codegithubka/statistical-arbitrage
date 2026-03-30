@@ -91,7 +91,7 @@ def clean_prices(
         logger.warning(f"Dropped {len(dropped)} tickers (insufficient history): {dropped}")
 
     out = prices[valid].ffill().dropna()
-    logger.info(f"Clean price matrix: {out.shape[0]} days × {out.shape[1]} tickers")
+    logger.info(f"Clean price matrix: {out.shape[0]} days x {out.shape[1]} tickers")
     return out
 
 
@@ -103,7 +103,7 @@ def compute_log_returns(prices: pd.DataFrame) -> pd.DataFrame:
 
 def load_data(config_path: str = "config/params.yaml") -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Full pipeline: load config → download → clean → compute returns.
+    Full pipeline: load config -> download -> clean -> compute returns.
 
     Returns
     -------

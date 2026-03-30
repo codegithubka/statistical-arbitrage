@@ -24,9 +24,6 @@ def calibrate_ou(spread: pd.Series | np.ndarray) -> OUParams:
     """
     Calibrate OU parameters from discrete spread observations via MLE.
 
-    MLE reduces to OLS on the AR(1): S_{t+1} = a + b·S_t + ε_t.
-    Parameters are then recovered analytically from (a, b, σ_ε).
-
     Parameters
     ----------
     spread : array-like
@@ -35,18 +32,17 @@ def calibrate_ou(spread: pd.Series | np.ndarray) -> OUParams:
     Returns
     -------
     OUParams
-        Calibrated (μ, θ, σ, half_life).
 
     Raises
     ------
     ValueError
-        If b ≥ 1 (non-stationary) or θ ≤ 0 (no mean reversion detected).
+        If b >= 1 (non-stationary) or theta <= 0 (no mean reversion detected).
     """
     s = np.asarray(spread, dtype=float)
     s = s[~np.isnan(s)]
 
     if len(s) < 30:
-        raise ValueError(f"Spread has only {len(s)} observations; need ≥ 30 for reliable calibration.")
+        raise ValueError(f"Spread has only {len(s)} observations; need >= 30 for reliable calibration.")
 
     # AR(1) OLS: regress S_{t+1} on [1, S_t]
     y = s[1:]
@@ -57,7 +53,7 @@ def calibrate_ou(spread: pd.Series | np.ndarray) -> OUParams:
 
     if b >= 1.0:
         raise ValueError(
-            f"AR(1) coefficient b={b:.4f} ≥ 1: spread is non-stationary, OU model not applicable."
+            f"AR(1) coefficient b={b:.4f} >= 1: spread is non-stationary, OU model not applicable."
         )
 
     sigma_eps = np.std(y - X @ coeffs, ddof=2)
@@ -65,14 +61,14 @@ def calibrate_ou(spread: pd.Series | np.ndarray) -> OUParams:
     # Recover OU parameters (dt = 1 trading day)
     theta = -np.log(b)
     mu = a / (1.0 - b)
-    # Annualise σ: σ_OU = σ_ε · sqrt(2θ / (1 − e^{−2θ})) ≈ σ_ε · sqrt(2θ / (1 − b²))
+    # Annualise sigma: sigma_OU = sigma_eps * sqrt(2theta / (1 - e^{-2theta})) ~ sigma_eps * sqrt(2theta / (1 - b^2))
     sigma = sigma_eps * np.sqrt(2.0 * theta / (1.0 - b**2))
 
     hl = half_life(theta)
 
     logger.debug(
-        f"OU calibration: μ={mu:.4f}, θ={theta:.6f}/day, "
-        f"σ={sigma:.6f}, half-life={hl:.1f} days"
+        f"OU calibration: mu={mu:.4f}, theta={theta:.6f}/day, "
+        f"sigma={sigma:.6f}, half-life={hl:.1f} days"
     )
 
     return OUParams(mu=mu, theta=theta, sigma=sigma, half_life=hl)
@@ -82,11 +78,11 @@ def half_life(theta: float) -> float:
     """
     Mean-reversion half-life in trading days.
 
-    Half-life = ln(2) / θ
+    Half-life = ln(2) / theta
 
-    A half-life of 5–30 days is generally considered tradeable.
-    Too short (< 3 days) → transaction costs dominate.
-    Too long (> 60 days) → capital locked up, low edge.
+    A half-life of 5-30 days is generally considered tradeable.
+    Too short (< 3 days) -> transaction costs dominate.
+    Too long (> 60 days) -> capital locked up, low edge.
 
     Parameters
     ----------
@@ -114,10 +110,10 @@ def ou_optimal_threshold(
     Derived from Avellaneda & Lee (2010), eq. for the optimal entry level c*
     that maximises expected P&L per unit time net of transaction costs:
 
-        c* = σ / sqrt(2θ) · 1 / sqrt(1 − 2θ·cost² / σ²)
+        c* = sigma / sqrt(2theta) * 1 / sqrt(1 - 2theta*cost^2 / sigma^2)
 
     This is the level (in spread units) at which to enter a position.
-    The corresponding z-score entry is c* / (σ / sqrt(2θ)).
+    The corresponding z-score entry is c* / (sigma / sqrt(2theta)).
 
     Parameters
     ----------
@@ -139,14 +135,14 @@ def ou_optimal_threshold(
     if theta <= 0 or sigma <= 0:
         return np.nan
 
-    # Equilibrium spread width: σ_eq = σ / sqrt(2θ)
+    # Equilibrium spread width: sigma_eq = sigma / sqrt(2theta)
     sigma_eq = sigma / np.sqrt(2.0 * theta)
 
     discriminant = 1.0 - 2.0 * theta * cost**2 / sigma**2
     if discriminant <= 0:
         logger.warning(
             f"Transaction cost ({cost:.6f}) exceeds profitable threshold for "
-            f"θ={theta:.6f}, σ={sigma:.6f}. No profitable entry exists."
+            f"theta={theta:.6f}, sigma={sigma:.6f}. No profitable entry exists."
         )
         return np.nan
 
@@ -154,7 +150,7 @@ def ou_optimal_threshold(
 
     logger.debug(
         f"OU optimal threshold: c*={c_star:.4f} spread units "
-        f"(σ_eq={sigma_eq:.4f}, cost={cost:.6f})"
+        f"(sigma_eq={sigma_eq:.4f}, cost={cost:.6f})"
     )
 
     return c_star

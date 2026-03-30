@@ -2,10 +2,10 @@
 Spread construction using a Kalman filter hedge ratio.
 
 State-space model (random-walk hedge ratio):
-    β_t  = β_{t-1} + w_t        w_t ~ N(0, Q)   [state equation]
-    P_A(t) = β_t · P_B(t) + v_t  v_t ~ N(0, R)   [observation equation]
+    beta_t  = beta_{t-1} + w_t        w_t ~ N(0, Q)   [state equation]
+    P_A(t) = beta_t * P_B(t) + v_t  v_t ~ N(0, R)   [observation equation]
 
-The Kalman filter estimates β_t at each step.  Spread and z-score follow.
+The Kalman filter estimates beta_t at each step.  Spread and z-score follow.
 """
 
 import logging
@@ -23,22 +23,22 @@ def kalman_hedge_ratio(
     obs_cov: float | None = None,
 ) -> pd.Series:
     """
-    Estimate a time-varying hedge ratio β_t via Kalman filter.
+    Estimate a time-varying hedge ratio beta_t via Kalman filter.
 
     Parameters
     ----------
     price_a, price_b : pd.Series
         Aligned price series for the two legs of the pair.
     trans_cov : float
-        Process (transition) noise Q — controls how fast β_t can drift.
-        Larger → faster adaptation; smaller → smoother β.
+        Process (transition) noise Q -- controls how fast beta_t can drift.
+        Larger -> faster adaptation; smaller -> smoother beta.
     obs_cov : float, optional
         Observation noise R.  Defaults to the variance of OLS residuals.
 
     Returns
     -------
     pd.Series
-        Time-varying hedge ratio β_t, same index as inputs.
+        Time-varying hedge ratio beta_t, same index as inputs.
     """
     a = price_a.values.astype(float)
     b = price_b.values.astype(float)
@@ -67,8 +67,8 @@ def kalman_hedge_ratio(
     beta_t = state_means[:, 0]
 
     logger.debug(
-        f"Kalman hedge ratio: OLS β₀={beta_ols:.4f}, "
-        f"final β_T={beta_t[-1]:.4f}, range=[{beta_t.min():.4f}, {beta_t.max():.4f}]"
+        f"Kalman hedge ratio: OLS beta0={beta_ols:.4f}, "
+        f"final beta_T={beta_t[-1]:.4f}, range=[{beta_t.min():.4f}, {beta_t.max():.4f}]"
     )
 
     return pd.Series(beta_t, index=price_a.index, name="hedge_ratio")
@@ -80,7 +80,7 @@ def build_spread(
     beta_t: pd.Series,
 ) -> pd.Series:
     """
-    Construct the spread: S_t = P_A(t) − β_t · P_B(t).
+    Construct the spread: S_t = P_A(t) - beta_t * P_B(t).
 
     Parameters
     ----------
@@ -103,8 +103,8 @@ def zscore(spread: pd.Series, window: int = 252) -> pd.Series:
     """
     Rolling z-score of the spread.
 
-    Z_t = (S_t − μ_t) / σ_t
-    where μ_t and σ_t are the rolling mean and std over `window` days.
+    Z_t = (S_t - mu_t) / sigma_t
+    where mu_t and sigma_t are the rolling mean and std over `window` days.
 
     Parameters
     ----------
@@ -133,7 +133,7 @@ def compute_pair_spread(
     obs_cov: float | None = None,
 ) -> pd.DataFrame:
     """
-    Full pipeline for a single pair: Kalman β_t → spread → z-score.
+    Full pipeline for a single pair: Kalman beta_t -> spread -> z-score.
 
     Parameters
     ----------

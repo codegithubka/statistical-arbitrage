@@ -22,7 +22,7 @@ def test_all_pairs(
     Parameters
     ----------
     prices : pd.DataFrame
-        Cleaned price matrix (DatetimeIndex × tickers).
+        Cleaned price matrix (DatetimeIndex x tickers).
     pvalue_threshold : float
         Maximum p-value to keep a pair.
     top_n : int
