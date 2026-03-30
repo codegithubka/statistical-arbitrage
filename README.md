@@ -24,19 +24,6 @@ To avoid in-sample overfitting, the strategy is evaluated using a rolling walk-f
 
 ---
 
-## Results
-
-**Portfolio equity curve** -- cumulative PnL of the equal-weight portfolio over the out-of-sample period:
-
-![Portfolio Equity Curve](imgs/portfolio_equity.png)
-
-
-**Per-pair breakdown** -- each panel shows cumulative PnL for one pair (blue = net positive, red = net negative):
-
-![Per-Pair Equity Curves](imgs/per_pair_equity.png)
-
----
-
 ## Project Structure
 
 ```
