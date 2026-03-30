@@ -14,8 +14,6 @@ pair_selection:
   trading_window: 63
   roll_step: 21                  # roll monthly
   coint_pvalue: 0.05             # Engle-Granger threshold
-  hurst_max: 0.5                 # filter non-mean-reverting spreads
-
 ou_model:
   method: "mle"                  # parameter estimation method
 
