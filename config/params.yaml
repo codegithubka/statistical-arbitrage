@@ -1,0 +1,29 @@
+# ============================================================
+# Statistical Arbitrage — Configuration
+# ============================================================
+
+data:
+  universe: "sp100"              # universe tag
+  start_date: "2018-01-01"
+  end_date: "2024-12-31"
+  cache_dir: "data"              # local cache for downloaded prices
+  min_history_pct: 0.95          # drop tickers with >5% missing days
+
+pair_selection:
+  formation_window: 252          # trading days
+  trading_window: 63
+  roll_step: 21                  # roll monthly
+  coint_pvalue: 0.05             # Engle-Granger threshold
+  hurst_max: 0.5                 # filter non-mean-reverting spreads
+
+ou_model:
+  method: "mle"                  # parameter estimation method
+
+signals:
+  entry_z: 2.0                   # z-score entry (will be refined with OU-optimal)
+  exit_z: 0.0                    # z-score exit (mean)
+  stop_z: 4.0                    # stop-loss z-score
+
+backtest:
+  transaction_cost_bps: 5        # round-trip, in basis points
+  initial_capital: 1_000_000
