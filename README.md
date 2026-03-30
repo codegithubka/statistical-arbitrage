@@ -1,30 +1,30 @@
-# Statistical Arbitrage
+## Statistical Arbitrage
 
 Walk-forward pairs trading strategy on S&P 100 equities, using Kalman filter spread estimation and Ornstein-Uhlenbeck signal generation.
 
 ---
 
-## Methodology
+### Methodology
 
-### Pair Selection
+#### Pair Selection
 
 Candidate pairs are selected from the S&P 100 universe using the Engle-Granger cointegration test (Gatev et al., 2006). All unique ticker combinations are tested at a 5% significance level and ranked by p-value. The top 20 cointegrated pairs are retained for modelling.
 
-### Spread Modelling
+#### Spread Modelling
 
 Rather than a fixed OLS hedge ratio, each pair's hedge ratio is estimated dynamically via a Kalman filter (state-space model with a random-walk state equation). This allows the relationship between the two legs to drift over time without re-fitting a static regression. The spread is defined as S_t = P_A(t) - beta_t * P_B(t). Spread stationarity is confirmed by calibrating an Ornstein-Uhlenbeck (OU) process to the residuals via AR(1) OLS; the estimated mean-reversion half-life is used to screen out pairs that revert too slowly to be tradeable.
 
-### Signal Generation
+#### Signal Generation
 
 A z-scored spread is computed using a rolling 252-day window. A simple state machine generates position labels (+1 long, -1 short, 0 flat) based on three thresholds: entry (|z| > 2.0), exit (|z| < 0.5 toward zero), and stop-loss (|z| > 3.5 away from entry). Transaction costs of 5 bps one-way are deducted on every position change.
 
-### Walk-Forward Backtesting
+#### Walk-Forward Backtesting
 
 To avoid in-sample overfitting, the strategy is evaluated using a rolling walk-forward scheme: a 252-day formation window calibrates the Kalman filter and z-score normalisation parameters, followed by a 63-day out-of-sample trading window. The window rolls forward 21 days at a time, producing roughly 70 non-overlapping test windows over a 7-year dataset (2018-2024). The Kalman filter state carries forward across windows; only the z-score mean and standard deviation are re-estimated each formation period. Per-pair results are aggregated into an equal-weight portfolio.
 
 ---
 
-## Project Structure
+### Project Structure
 
 ```
 statistical_arbitrage/
@@ -58,7 +58,7 @@ statistical_arbitrage/
 
 ---
 
-## How to Run
+## Running 
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -80,7 +80,7 @@ pytest tests/ -v
 
 ---
 
-## Limitations
+### Limitations
 
 - *Look-ahead bias in pair selection*: pairs are selected using cointegration tests on the full 2018-2024 sample, then backtested on that same period. The walk-forward logic correctly avoids parameter look-ahead, but the pair universe itself was chosen with future knowledge. In a live setting, pairs would be selected inside each formation window and many would not pass the filter. This is the primary source of inflated Sharpe and profit factor; live performance would be materially lower.
 - *Survivorship bias*: the universe is fixed to current S&P 100 constituents. Pairs involving tickers that were dropped from the index during 2018-2024 are excluded, which overstates the available opportunity set.
@@ -91,7 +91,7 @@ pytest tests/ -v
 
 ---
 
-## References
+### References
 
 - Vidyamurthy, G. (2004). *Pairs Trading: Quantitative Methods and Analysis*. Wiley.
 - Gatev, E., Goetzmann, W. N., and Rouwenhorst, K. G. (2006). Pairs trading: Performance of a relative-value arbitrage rule. *Review of Financial Studies*, 19(3), 797-827.
